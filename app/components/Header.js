@@ -2,23 +2,26 @@ import Link from 'next/link';
 
 export default function Header() {
   return (
-    <header style={{ borderBottom: '1px solid #eee' }}>
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        maxWidth: '900px',
-        margin: '0 auto',
-        padding: '1.25rem 1.5rem'
-      }}>
-        <Link href="/" style={{ textDecoration: 'none', color: '#000' }}>
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', margin: 0 }}>DA News</h1>
+    <header className="sticky top-0 z-50 bg-white border-b border-gray-100 px-4 py-3">
+      <div className="max-w-md mx-auto flex items-center justify-between">
+        {/* Logo DA dengan warna Cyan/Teal */}
+        <Link href="/" className="text-2xl font-black tracking-wider text-teal-500">
+          DA
         </Link>
-        <nav style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
-          <Link href="/" style={{ textDecoration: 'none', color: '#333', fontSize: '0.9rem' }}>Home</Link>
-          <Link href="/about" style={{ textDecoration: 'none', color: '#333', fontSize: '0.9rem' }}>About</Link>
-          <button aria-label="Search" style={{ background: 'none', border: 'none', fontSize: '1.1rem', cursor: 'pointer' }}>🔍</button>
-        </nav>
+
+        {/* Icon Search & Menu */}
+        <div className="flex items-center gap-4 text-gray-700">
+          <button aria-label="Search" className="p-1 hover:text-teal-500 transition-colors">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </button>
+          <button aria-label="Menu" className="p-1 hover:text-teal-500 transition-colors">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+        </div>
       </div>
     </header>
   );
