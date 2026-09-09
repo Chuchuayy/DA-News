@@ -1,105 +1,91 @@
 import Link from 'next/link';
-import Image from 'next/image';
-import { supabase } from '../lib/supabaseClient';
 
-function formatDate(dateString) {
-  return new Date(dateString).toLocaleDateString('en-US', {
-    year: 'numeric', month: 'short', day: 'numeric'
-  });
-}
+export default function Home({ articles = [] }) {
+  // Asumsi pembagian artikel dari Supabase:
+  // article[0] = Hero / Featured Utama
+  // article[1] = Sub-Featured
+  // article[2..n] = List Berita Sampingan
 
-export default async function HomePage() {
-  const { data: articles } = await supabase
-    .from('articles')
-    .select('*, categories(name, slug)')
-    .order('created_at', { ascending: false });
-
-  const { data: categories } = await supabase
-    .from('categories')
-    .select('*');
-
-  const hero = articles && articles[0];
-  const rest = articles ? articles.slice(1) : [];
+  const featured = articles[0];
+  const subFeatured = articles[1];
+  const listArticles = articles.slice(2);
 
   return (
-    <main style={{ maxWidth: '900px', margin: '0 auto', padding: '2rem 1.5rem' }}>
-
-      {hero && (
-        <Link href={`/article/${hero.slug}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-          <section style={{
-            marginBottom: '2rem',
-            border: '1px solid #eee',
-            borderRadius: '12px',
-            overflow: 'hidden',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.06)'
-          }}>
-            {hero.cover_image && (
-              <div style={{ position: 'relative', width: '100%', aspectRatio: '16/9', background: '#f5f5f5' }}>
-                <Image
-                  src={hero.cover_image}
-                  alt={hero.title}
-                  fill
-                  style={{ objectFit: 'cover' }}
-                  priority
-                />
-              </div>
-            )}
-            <div style={{ padding: '1.25rem' }}>
-              {hero.categories && (
-                <span style={{ fontSize: '0.75rem', fontWeight: 'bold', color: '#c81d3b', textTransform: 'uppercase' }}>
-                  {hero.categories.name}
-                </span>
-              )}
-              <h2 style={{ fontSize: '1.6rem', margin: '0.5rem 0' }}>{hero.title}</h2>
-              <p style={{ color: '#999', fontSize: '0.85rem', margin: '0 0 0.75rem' }}>{formatDate(hero.created_at)}</p>
-              <p style={{ color: '#555', margin: 0 }}>{hero.content.slice(0, 200)}...</p>
+    <main className="max-w-md mx-auto px-4 py-4 space-y-6 bg-white min-h-screen text-gray-900 font-sans">
+      
+      {/* 1. HERO FEATURED ARTICLE (Image dengan Text Overlay) */}
+      {featured && (
+        <Link href={`/article/${featured.slug}`} className="block group">
+          <div className="relative aspect-[4/3] w-full rounded-2xl overflow-hidden shadow-sm">
+            {/* Background Image */}
+            <img 
+              src={featured.cover_image || '/placeholder.jpg'} 
+              alt={featured.title}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            />
+            {/* Dark Overlay Gradient */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+            
+            {/* Content di atas gambar */}
+            <div className="absolute bottom-0 left-0 right-0 p-4 space-y-2 text-white">
+              <span className="inline-block bg-teal-500/90 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                {featured.categories?.name || 'News'}
+              </span>
+              <h1 className="text-lg font-bold leading-snug line-clamp-3">
+                {featured.title}
+              </h1>
+              <p className="text-[11px] text-gray-300">
+                {new Date(featured.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+              </p>
             </div>
-          </section>
+          </div>
         </Link>
       )}
 
-      {categories && categories.length > 0 && (
-        <section style={{ marginBottom: '2rem' }}>
-          <h3 style={{ fontSize: '1.1rem', marginBottom: '1rem' }}>Browse by Category</h3>
-          <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-            {categories.map((cat) => (
-              <Link
-                key={cat.id}
-                href={`/category/${cat.slug}`}
-                style={{
-                  textDecoration: 'none', color: '#333', border: '1px solid #ddd',
-                  borderRadius: '20px', padding: '0.5rem 1.2rem', fontSize: '0.9rem'
-                }}
-              >
-                {cat.name}
-              </Link>
-            ))}
-          </div>
-        </section>
+      {/* 2. SUB-FEATURED ARTICLE (Teks saja) */}
+      {subFeatured && (
+        <Link href={`/article/${subFeatured.slug}`} className="block border-b border-gray-100 pb-4 space-y-1.5 group">
+          <h2 className="text-base font-bold text-gray-900 leading-snug group-hover:text-teal-600 transition-colors">
+            {subFeatured.title}
+          </h2>
+          <p className="text-xs text-gray-500 line-clamp-2 leading-relaxed">
+            {subFeatured.content}
+          </p>
+          <p className="text-[11px] text-gray-400 pt-1">
+            {new Date(subFeatured.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+          </p>
+        </Link>
       )}
 
-      {rest.length > 0 && (
-        <section>
-          <h3 style={{ fontSize: '1.1rem', marginBottom: '1rem' }}>More Stories</h3>
-          <div style={{ display: 'grid', gap: '1.25rem' }}>
-            {rest.map((article) => (
-              <Link key={article.id} href={`/article/${article.slug}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-                <article style={{
-                  border: '1px solid #eee',
-                  borderRadius: '12px',
-                  padding: '1.25rem',
-                  boxShadow: '0 1px 3px rgba(0,0,0,0.06)'
-                }}>
-                  <h2 style={{ fontSize: '1.2rem', margin: '0 0 0.3rem' }}>{article.title}</h2>
-                  <p style={{ color: '#999', fontSize: '0.8rem', margin: '0 0 0.5rem' }}>{formatDate(article.created_at)}</p>
-                  <p style={{ color: '#555', margin: 0 }}>{article.content.slice(0, 120)}...</p>
-                </article>
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
+      {/* 3. LIST ARTIKEL HORIZONTAL (Gambar Kiri, Teks Kanan) */}
+      <div className="space-y-4 pt-2">
+        {listArticles.map((item) => (
+          <Link href={`/article/${item.slug}`} key={item.id} className="flex gap-3 items-start group">
+            {/* Thumbnail Kiri */}
+            <div className="relative w-28 h-24 flex-shrink-0 rounded-xl overflow-hidden bg-gray-100">
+              <img 
+                src={item.cover_image || '/placeholder.jpg'} 
+                alt={item.title}
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              />
+              <span className="absolute top-1.5 left-1.5 bg-teal-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">
+                {item.categories?.name || 'News'}
+              </span>
+            </div>
+
+            {/* Konten Kanan */}
+            <div className="flex-1 min-w-0 space-y-1 py-0.5">
+              <h3 className="text-xs font-bold text-gray-900 leading-snug line-clamp-3 group-hover:text-teal-600 transition-colors">
+                {item.title}
+              </h3>
+              <p className="text-[10px] text-gray-400">
+                {new Date(item.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+              </p>
+            </div>
+          </Link>
+        ))}
+      </div>
 
     </main>
   );
-              }
+}
