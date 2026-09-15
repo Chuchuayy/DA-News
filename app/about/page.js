@@ -1,54 +1,37 @@
-import Link from 'next/link';
-
 export const metadata = {
-  title: 'Tentang Kami',
+  title: 'About Us',
   description:
-    'DA News (Dubirodum Asia News) adalah portal berita independen yang menyajikan informasi terkini dari Asia.',
+    'DA News (Dubirodum Asia News) is an independent newsroom covering Asia and the world.',
 };
 
 export default function AboutPage() {
   return (
-    <div className="mx-auto max-w-3xl">
-      <div className="section-bar">
-        <h1 className="section-bar__title text-xl">Tentang Kami</h1>
-      </div>
+    <div className="mx-auto max-w-2xl">
+      <h1 className="mb-6 border-b border-rule pb-4 font-serif text-2xl font-bold text-ink">
+        About Us
+      </h1>
 
       <div className="article-body">
         <p>
-          <strong>DA News</strong> — <em>Dubirodum Asia News</em> — adalah portal berita
-          independen yang menyajikan informasi terkini, akurat, dan mendalam dari kawasan Asia
-          maupun dunia.
+          <strong>DA News</strong> — <em>Dubirodum Asia News</em> — is an independent newsroom
+          publishing clear, original coverage of Asia and the wider world.
         </p>
         <p>
-          Kami berkomitmen pada jurnalisme yang cepat dan dapat dipercaya: politik, ekonomi,
-          teknologi, dan peristiwa dunia disajikan secara ringkas namun tetap tajam. Redaksi kami
-          bekerja sepanjang hari untuk memastikan pembaca mendapatkan fakta terverifikasi.
+          We focus on technology, world affairs, politics, economy, lifestyle and sport, keeping
+          our pages deliberately uncluttered so the reporting stays front and centre.
         </p>
 
-        <h2>Visi</h2>
+        <h2>What we do</h2>
         <p>
-          Menjadi rujukan berita Asia yang paling terpercaya bagi pembaca di Indonesia dan
-          sekitarnya.
+          Every story is written for readers who want the essentials quickly: a sharp headline, a
+          straightforward account, and enough context to understand why it matters.
         </p>
 
-        <h2>Misi</h2>
-        <ul>
-          <li>Menyajikan berita yang akurat, berimbang, dan bebas dari kepentingan pihak tertentu.</li>
-          <li>Menghadirkan konteks dan analisis yang membantu pembaca memahami peristiwa.</li>
-          <li>Mengutamakan kecepatan tanpa mengorbankan ketepatan.</li>
-        </ul>
-
-        <h2>Kontak</h2>
+        <h2>Get in touch</h2>
         <p>
-          Redaksi: <a href="mailto:redaksi@dubirodum.asia">redaksi@dubirodum.asia</a>
-          <br />
-          Iklan &amp; Kerja Sama: <a href="mailto:ads@dubirodum.asia">ads@dubirodum.asia</a>
+          For editorial enquiries, visit our <a href="/contact">contact page</a>.
         </p>
       </div>
-
-      <Link href="/" className="btn-primary mt-8">
-        Kembali ke Beranda
-      </Link>
     </div>
   );
 }

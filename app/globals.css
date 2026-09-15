@@ -3,9 +3,8 @@
 @tailwind utilities;
 
 :root {
-  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu,
-    Cantarell, 'Helvetica Neue', Arial, sans-serif;
-  --font-serif: Georgia, Cambria, 'Times New Roman', serif;
+  --font-sans: var(--font-inter), system-ui, Arial, sans-serif;
+  --font-serif: var(--font-playfair), Georgia, 'Times New Roman', serif;
 }
 
 * {
@@ -21,7 +20,7 @@ body {
   max-width: 100%;
   overflow-x: hidden;
   background-color: #ffffff;
-  color: #0f172a;
+  color: #111111;
 }
 
 a {
@@ -35,7 +34,7 @@ img {
 }
 
 /* -------------------------------------------------------------------------- */
-/*  Component primitives (blue & white media look)                             */
+/*  Minimal component primitives                                               */
 /* -------------------------------------------------------------------------- */
 @layer components {
   /* Page-width wrapper used across header, footer and pages. */
@@ -43,61 +42,29 @@ img {
     @apply mx-auto w-full max-w-page px-4 sm:px-6;
   }
 
-  /* Section title bar: bold rule + blue accent, Kompas-like. */
-  .section-bar {
-    @apply flex items-center justify-between border-b-2 border-primary pb-2 mb-5;
+  /* Small pill used for teal category badges on cards. */
+  .pill {
+    @apply inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold leading-none;
   }
 
-  .section-bar__title {
-    @apply relative pl-3 text-lg font-extrabold uppercase tracking-wide text-ink;
-  }
-
-  .section-bar__title::before {
-    content: '';
-    @apply absolute left-0 top-1/2 h-4 w-1 -translate-y-1/2 bg-primary;
-  }
-
-  .section-bar__more {
-    @apply text-xs font-semibold uppercase tracking-wide text-primary hover:text-primary-dark;
-  }
-
-  /* Kicker / category label above headlines. */
-  .kicker {
-    @apply inline-block text-kicker font-bold uppercase text-primary;
-  }
-
-  /* Meta line (date, author) under headlines. */
-  .meta {
-    @apply text-xs text-ink-soft;
-  }
-
-  /* Article card base. */
-  .card {
-    @apply flex flex-col bg-white transition hover:opacity-95;
-  }
-
-  .card__title {
-    @apply font-bold text-ink leading-snug group-hover:text-primary;
-  }
-
-  .card__summary {
-    @apply text-sm text-ink-soft leading-relaxed;
-  }
-
-  .btn-primary {
-    @apply inline-flex items-center justify-center rounded bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:bg-primary-dark disabled:opacity-60;
-  }
-
-  .btn-ghost {
-    @apply inline-flex items-center justify-center rounded border border-rule px-4 py-2 text-sm font-semibold text-ink transition hover:border-primary hover:text-primary;
+  .pill-brand {
+    @apply bg-brand text-white;
   }
 
   .input {
-    @apply w-full rounded border border-rule bg-white px-3 py-2 text-sm text-ink outline-none transition focus:border-primary focus:ring-1 focus:ring-primary;
+    @apply w-full rounded-xl border border-rule bg-white px-4 py-2.5 text-sm text-ink outline-none transition focus:border-brand;
   }
 
   .label {
     @apply mb-1 block text-xs font-semibold uppercase tracking-wide text-ink-soft;
+  }
+
+  .btn-brand {
+    @apply inline-flex items-center justify-center rounded-full bg-brand px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-dark disabled:opacity-60;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center rounded-full border border-rule px-5 py-2.5 text-sm font-semibold text-ink transition hover:border-brand hover:text-brand disabled:opacity-60;
   }
 }
 
@@ -118,22 +85,15 @@ img {
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
-
-  .line-clamp-4 {
-    display: -webkit-box;
-    -webkit-line-clamp: 4;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
 }
 
 /* -------------------------------------------------------------------------- */
-/*  Rich-text article body (rendered from stored HTML)                          */
+/*  Article body (rendered from stored HTML)                                   */
 /* -------------------------------------------------------------------------- */
 .article-body {
   font-size: 1.0625rem;
   line-height: 1.85;
-  color: #1e293b;
+  color: #111111;
   word-break: break-word;
 }
 
@@ -142,21 +102,23 @@ img {
 }
 
 .article-body h2 {
+  font-family: var(--font-serif);
   font-size: 1.5rem;
   font-weight: 700;
   margin: 2rem 0 0.75rem;
-  color: #0f172a;
+  color: #111111;
 }
 
 .article-body h3 {
+  font-family: var(--font-serif);
   font-size: 1.25rem;
   font-weight: 700;
   margin: 1.5rem 0 0.5rem;
-  color: #0f172a;
+  color: #111111;
 }
 
 .article-body a {
-  color: #2563eb;
+  color: #00a99c;
   text-decoration: underline;
 }
 
@@ -175,46 +137,14 @@ img {
 }
 
 .article-body blockquote {
-  border-left: 3px solid #2563eb;
+  border-left: 3px solid #00c8b8;
   padding-left: 1rem;
   margin: 1.5rem 0;
-  color: #475569;
+  color: #6b6b6b;
   font-style: italic;
 }
 
 .article-body img {
   margin: 1.5rem 0;
-  border-radius: 4px;
-}
-
-.article-body pre {
-  background: #0f172a;
-  color: #f8fafc;
-  padding: 1rem;
-  border-radius: 6px;
-  overflow-x: auto;
-  margin-bottom: 1.25rem;
-}
-
-/* -------------------------------------------------------------------------- */
-/*  Quill editor overrides (blue & white)                                      */
-/* -------------------------------------------------------------------------- */
-.ql-toolbar.ql-snow {
-  border-color: #e2e8f0;
-  border-top-left-radius: 4px;
-  border-top-right-radius: 4px;
-  background: #f8fafc;
-}
-
-.ql-container.ql-snow {
-  border-color: #e2e8f0;
-  border-bottom-left-radius: 4px;
-  border-bottom-right-radius: 4px;
-  min-height: 260px;
-  font-size: 1rem;
-  font-family: var(--font-sans);
-}
-
-.ql-editor {
-  min-height: 260px;
+  border-radius: 12px;
 }

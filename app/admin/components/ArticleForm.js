@@ -1,72 +1,30 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
-import dynamic from 'next/dynamic';
-import 'react-quill/dist/quill.snow.css';
+import { useEffect, useState } from 'react';
 import { createArticle, deleteArticle, updateArticle, uploadCover, slugify } from '../../../lib/admin';
 
-// Quill touches the DOM on import, so it is loaded client-side only.
-const ReactQuill = dynamic(() => import('react-quill'), {
-  ssr: false,
-  loading: () => (
-    <div className="rounded border border-rule bg-primary-soft px-3 py-10 text-center text-sm text-ink-soft">
-      Memuat editor...
-    </div>
-  ),
-});
-
-const QUILL_MODULES = {
-  toolbar: [
-    [{ header: [2, 3, false] }],
-    ['bold', 'italic', 'underline', 'strike'],
-    [{ list: 'ordered' }, { list: 'bullet' }],
-    ['blockquote', 'link', 'image'],
-    ['clean'],
-  ],
-};
-
-const QUILL_FORMATS = [
-  'header',
-  'bold',
-  'italic',
-  'underline',
-  'strike',
-  'list',
-  'blockquote',
-  'link',
-  'image',
-];
-
-export default function ArticleForm({ article = null, categories = [], user, onSaved, onCancel }) {
+/**
+ * Minimal article form: Title, plain-text Content, and a Cover image upload.
+ * Category selection and the rich-text editor were intentionally removed so the
+ * public site stays minimal; the slug is generated automatically from the title.
+ */
+export default function ArticleForm({ article = null, user, onSaved, onCancel }) {
   const isEditing = Boolean(article?.id);
 
   const [title, setTitle] = useState(article?.title || '');
   const [slug, setSlug] = useState(article?.slug || '');
-  const [slugTouched, setSlugTouched] = useState(Boolean(article?.slug));
-  const [categoryId, setCategoryId] = useState(article?.category_id || '');
-  const [coverUrl, setCoverUrl] = useState(article?.cover_image || '');
   const [content, setContent] = useState(article?.content || '');
+  const [coverUrl, setCoverUrl] = useState(article?.cover_image || '');
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
 
-  // Keep the slug in sync with the title until the user edits it manually.
+  // Keep the slug in sync with the title.
   useEffect(() => {
-    if (!slugTouched) setSlug(slugify(title));
-  }, [title, slugTouched]);
-
-  useEffect(() => {
-    if (!categoryId && categories.length > 0) {
-      setCategoryId(article?.category_id || categories[0].id);
-    }
-  }, [categories, categoryId, article]);
-
-  const plainLength = useMemo(
-    () => (content || '').replace(/<[^>]*>/g, '').trim().length,
-    [content]
-  );
+    setSlug(slugify(title));
+  }, [title]);
 
   const handleCoverChange = async (e) => {
     const file = e.target.files?.[0];
@@ -81,16 +39,8 @@ export default function ArticleForm({ article = null, categories = [], user, onS
       return;
     }
     setCoverUrl(publicUrl);
-    setNotice('Cover berhasil diunggah.');
+    setNotice('Cover uploaded.');
   };
-
-  const buildPayload = () => ({
-    title: title.trim(),
-    slug: (slug || slugify(title)).trim(),
-    content,
-    cover_image: coverUrl || null,
-    category_id: categoryId || null,
-  });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -98,16 +48,21 @@ export default function ArticleForm({ article = null, categories = [], user, onS
     setNotice('');
 
     if (!title.trim()) {
-      setError('Judul wajib diisi.');
+      setError('Title is required.');
       return;
     }
-    if (plainLength === 0) {
-      setError('Isi artikel tidak boleh kosong.');
+    if (!content.trim()) {
+      setError('Content cannot be empty.');
       return;
     }
 
     setSaving(true);
-    const payload = buildPayload();
+    const payload = {
+      title: title.trim(),
+      slug: (slug || slugify(title)).trim(),
+      content: content.trim(),
+      cover_image: coverUrl || null,
+    };
 
     if (isEditing) {
       const { error: updateError } = await updateArticle(article.id, payload);
@@ -116,7 +71,7 @@ export default function ArticleForm({ article = null, categories = [], user, onS
         setError(updateError.message);
         return;
       }
-      setNotice('Artikel berhasil diperbarui.');
+      setNotice('Article updated.');
       onSaved?.();
     } else {
       const { error: createError } = await createArticle({
@@ -128,19 +83,18 @@ export default function ArticleForm({ article = null, categories = [], user, onS
         setError(createError.message);
         return;
       }
-      setNotice('Artikel berhasil diterbitkan.');
       setTitle('');
       setSlug('');
-      setSlugTouched(false);
       setContent('');
       setCoverUrl('');
+      setNotice('Article published.');
       onSaved?.();
     }
   };
 
   const handleDelete = async () => {
     if (!isEditing) return;
-    if (!window.confirm('Hapus artikel ini secara permanen?')) return;
+    if (!window.confirm('Delete this article permanently?')) return;
     setError('');
     setDeleting(true);
     const { error: deleteError } = await deleteArticle(article.id);
@@ -153,82 +107,45 @@ export default function ArticleForm({ article = null, categories = [], user, onS
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5 rounded border border-rule bg-white p-5">
+    <form onSubmit={handleSubmit} className="space-y-5 rounded-2xl border border-rule p-5">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-bold text-ink">
-          {isEditing ? 'Edit Artikel' : 'Artikel Baru'}
+        <h2 className="font-serif text-lg font-bold text-ink">
+          {isEditing ? 'Edit Article' : 'New Article'}
         </h2>
         {onCancel ? (
-          <button type="button" onClick={onCancel} className="btn-ghost py-1 text-xs">
-            Batal
+          <button type="button" onClick={onCancel} className="btn-ghost px-3 py-1 text-xs">
+            Cancel
           </button>
         ) : null}
       </div>
 
       <div>
         <label className="label" htmlFor="title">
-          Judul
+          Title
         </label>
         <input
           id="title"
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="Tulis judul berita..."
+          placeholder="Write a headline…"
           className="input"
           required
         />
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <div>
-          <label className="label" htmlFor="slug">
-            Slug URL
-          </label>
-          <input
-            id="slug"
-            type="text"
-            value={slug}
-            onChange={(e) => {
-              setSlugTouched(true);
-              setSlug(e.target.value);
-            }}
-            placeholder="slug-berita"
-            className="input"
-          />
-        </div>
-        <div>
-          <label className="label" htmlFor="category">
-            Kategori
-          </label>
-          <select
-            id="category"
-            value={categoryId}
-            onChange={(e) => setCategoryId(e.target.value)}
-            className="input"
-          >
-            <option value="">— Pilih kategori —</option>
-            {categories.map((cat) => (
-              <option key={cat.id} value={cat.id}>
-                {cat.name}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
-
       <div>
         <label className="label" htmlFor="cover">
-          Cover
+          Cover image
         </label>
         <div className="flex flex-wrap items-center gap-4">
           {coverUrl ? (
-            <div className="h-20 w-32 overflow-hidden rounded border border-rule">
+            <div className="h-20 w-32 overflow-hidden rounded-xl border border-rule">
               <img src={coverUrl} alt="Cover" className="h-full w-full object-cover" />
             </div>
           ) : (
-            <div className="flex h-20 w-32 items-center justify-center rounded border border-dashed border-rule text-xs text-ink-soft">
-              Tanpa cover
+            <div className="flex h-20 w-32 items-center justify-center rounded-xl border border-dashed border-rule text-xs text-ink-soft">
+              No cover
             </div>
           )}
           <div className="space-y-1">
@@ -241,49 +158,41 @@ export default function ArticleForm({ article = null, categories = [], user, onS
               className="text-sm"
             />
             <p className="text-xs text-ink-soft">
-              {uploading
-                ? 'Mengunggah...'
-                : 'Diunggah ke Supabase Storage (bucket "covers").'}
+              {uploading ? 'Uploading…' : 'Uploaded to Supabase Storage (bucket "covers").'}
             </p>
           </div>
         </div>
       </div>
 
       <div>
-        <label className="label">Isi Artikel</label>
-        <ReactQuill
-          theme="snow"
+        <label className="label" htmlFor="content">
+          Content
+        </label>
+        <textarea
+          id="content"
           value={content}
-          onChange={setContent}
-          modules={QUILL_MODULES}
-          formats={QUILL_FORMATS}
-          placeholder="Tulis isi berita di sini..."
+          onChange={(e) => setContent(e.target.value)}
+          rows={14}
+          placeholder="Write the story…"
+          className="input resize-y font-sans leading-relaxed"
         />
       </div>
 
-      {error ? (
-        <p className="rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600">
-          {error}
-        </p>
-      ) : null}
-      {notice ? (
-        <p className="rounded border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700">
-          {notice}
-        </p>
-      ) : null}
+      {error ? <p className="text-sm text-date">{error}</p> : null}
+      {notice ? <p className="text-sm text-brand">{notice}</p> : null}
 
       <div className="flex items-center gap-3">
-        <button type="submit" disabled={saving || uploading} className="btn-primary">
-          {saving ? 'Menyimpan...' : isEditing ? 'Simpan Perubahan' : 'Terbitkan'}
+        <button type="submit" disabled={saving || uploading} className="btn-brand">
+          {saving ? 'Saving…' : isEditing ? 'Save changes' : 'Publish'}
         </button>
         {isEditing ? (
           <button
             type="button"
             onClick={handleDelete}
             disabled={deleting}
-            className="rounded border border-red-200 px-4 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-50"
+            className="rounded-full border border-date px-5 py-2.5 text-sm font-semibold text-date transition hover:bg-date/5"
           >
-            {deleting ? 'Menghapus...' : 'Hapus'}
+            {deleting ? 'Deleting…' : 'Delete'}
           </button>
         ) : null}
       </div>

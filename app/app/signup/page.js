@@ -27,29 +27,28 @@ export default function SignupPage() {
   return (
     <div className="mx-auto max-w-md py-10">
       <div className="mb-6 text-center">
-        <span className="text-2xl font-extrabold tracking-tight text-primary">DA News</span>
-        <p className="mt-1 text-[11px] font-medium uppercase tracking-[0.18em] text-ink-soft">
+        <span className="text-3xl font-bold tracking-tight text-brand">DA</span>
+        <p className="mt-1 text-xs font-medium uppercase tracking-[0.18em] text-ink-soft">
           Dubirodum Asia News
         </p>
       </div>
 
-      <div className="rounded border border-rule bg-white p-6 shadow-card">
+      <div className="rounded-2xl border border-rule p-6">
         {success ? (
           <div className="text-center">
-            <h1 className="mb-2 text-lg font-bold text-ink">Periksa Email Anda</h1>
+            <h1 className="mb-2 font-serif text-xl font-bold text-ink">Check your email</h1>
             <p className="text-sm text-ink-soft">
-              Kami mengirim tautan konfirmasi ke{' '}
-              <span className="font-semibold text-ink">{email}</span>. Silakan konfirmasi sebelum
-              masuk.
+              We sent a confirmation link to <span className="font-semibold text-ink">{email}</span>
+              . Please confirm before signing in.
             </p>
-            <Link href="/login" className="btn-primary mt-6">
-              Ke Halaman Masuk
+            <Link href="/login" className="btn-brand mt-6">
+              Go to sign in
             </Link>
           </div>
         ) : (
           <>
-            <h1 className="mb-1 text-lg font-bold text-ink">Daftar</h1>
-            <p className="mb-6 text-sm text-ink-soft">Buat akun untuk mengakses DA News.</p>
+            <h1 className="mb-1 font-serif text-xl font-bold text-ink">Create account</h1>
+            <p className="mb-6 text-sm text-ink-soft">Create an account to comment on DA News.</p>
 
             <form onSubmit={handleSignup} className="space-y-4">
               <div>
@@ -59,7 +58,7 @@ export default function SignupPage() {
                 <input
                   id="email"
                   type="email"
-                  placeholder="nama@email.com"
+                  placeholder="name@email.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -73,7 +72,7 @@ export default function SignupPage() {
                 <input
                   id="password"
                   type="password"
-                  placeholder="Minimal 6 karakter"
+                  placeholder="At least 6 characters"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
@@ -82,21 +81,17 @@ export default function SignupPage() {
                 />
               </div>
 
-              {error ? (
-                <p className="rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600">
-                  {error}
-                </p>
-              ) : null}
+              {error ? <p className="text-sm text-date">{error}</p> : null}
 
-              <button type="submit" disabled={loading} className="btn-primary w-full">
-                {loading ? 'Memproses...' : 'Daftar'}
+              <button type="submit" disabled={loading} className="btn-brand w-full">
+                {loading ? 'Creating…' : 'Create account'}
               </button>
             </form>
 
             <p className="mt-6 text-center text-sm text-ink-soft">
-              Sudah punya akun?{' '}
-              <Link href="/login" className="font-semibold text-primary hover:text-primary-dark">
-                Masuk
+              Already have an account?{' '}
+              <Link href="/login" className="font-semibold text-brand hover:text-brand-dark">
+                Sign in
               </Link>
             </p>
           </>
@@ -104,8 +99,8 @@ export default function SignupPage() {
       </div>
 
       <p className="mt-6 text-center text-xs text-ink-soft">
-        <Link href="/" className="hover:text-primary">
-          &larr; Kembali ke Beranda
+        <Link href="/" className="hover:text-brand">
+          &larr; Back to home
         </Link>
       </p>
     </div>

@@ -26,18 +26,36 @@ export default function LoginPage() {
     }
   }
 
+  async function handleGoogle() {
+    setError('');
+    await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: window.location.origin },
+    });
+  }
+
   return (
     <div className="mx-auto max-w-md py-10">
       <div className="mb-6 text-center">
-        <span className="text-2xl font-extrabold tracking-tight text-primary">DA News</span>
-        <p className="mt-1 text-[11px] font-medium uppercase tracking-[0.18em] text-ink-soft">
+        <span className="text-3xl font-bold tracking-tight text-brand">DA</span>
+        <p className="mt-1 text-xs font-medium uppercase tracking-[0.18em] text-ink-soft">
           Dubirodum Asia News
         </p>
       </div>
 
-      <div className="rounded border border-rule bg-white p-6 shadow-card">
-        <h1 className="mb-1 text-lg font-bold text-ink">Masuk</h1>
-        <p className="mb-6 text-sm text-ink-soft">Masuk untuk mengelola berita DA News.</p>
+      <div className="rounded-2xl border border-rule p-6">
+        <h1 className="mb-1 font-serif text-xl font-bold text-ink">Sign in</h1>
+        <p className="mb-6 text-sm text-ink-soft">Sign in to comment and manage your account.</p>
+
+        <button type="button" onClick={handleGoogle} className="btn-ghost w-full">
+          Continue with Google
+        </button>
+
+        <div className="my-5 flex items-center gap-3 text-xs text-ink-faint">
+          <span className="h-px flex-1 bg-rule" />
+          or
+          <span className="h-px flex-1 bg-rule" />
+        </div>
 
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
@@ -47,7 +65,7 @@ export default function LoginPage() {
             <input
               id="email"
               type="email"
-              placeholder="nama@email.com"
+              placeholder="name@email.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -69,28 +87,24 @@ export default function LoginPage() {
             />
           </div>
 
-          {error ? (
-            <p className="rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600">
-              {error}
-            </p>
-          ) : null}
+          {error ? <p className="text-sm text-date">{error}</p> : null}
 
-          <button type="submit" disabled={loading} className="btn-primary w-full">
-            {loading ? 'Memproses...' : 'Masuk'}
+          <button type="submit" disabled={loading} className="btn-brand w-full">
+            {loading ? 'Signing in…' : 'Sign in'}
           </button>
         </form>
 
         <p className="mt-6 text-center text-sm text-ink-soft">
-          Belum punya akun?{' '}
-          <Link href="/app/signup" className="font-semibold text-primary hover:text-primary-dark">
-            Daftar
+          No account?{' '}
+          <Link href="/app/signup" className="font-semibold text-brand hover:text-brand-dark">
+            Create one
           </Link>
         </p>
       </div>
 
       <p className="mt-6 text-center text-xs text-ink-soft">
-        <Link href="/" className="hover:text-primary">
-          &larr; Kembali ke Beranda
+        <Link href="/" className="hover:text-brand">
+          &larr; Back to home
         </Link>
       </p>
     </div>

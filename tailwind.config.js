@@ -9,51 +9,27 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Blue & white media palette (Kompas-like density, minimal styling).
-        primary: {
-          DEFAULT: '#2563eb',
-          dark: '#1e40af',
-          light: '#3b82f6',
-          soft: '#eff6ff',
-        },
-        secondary: '#1e40af',
-        ink: '#0f172a',
-        'ink-soft': '#475569',
-        rule: '#e2e8f0',
+        // DA News brand system: white canvas, near-black text, teal accents,
+        // red reserved for dates only.
+        ink: '#111111',
+        'ink-soft': '#6B6B6B',
+        'ink-faint': '#9A9A9A',
+        brand: '#00C8B8',
+        'brand-dark': '#00A99C',
+        date: '#FF3B30',
+        rule: '#F0F0F0',
+        surface: '#F5F5F5',
       },
       fontFamily: {
-        sans: [
-          'var(--font-sans)',
-          '-apple-system',
-          'BlinkMacSystemFont',
-          'Segoe UI',
-          'Roboto',
-          'Helvetica Neue',
-          'Arial',
-          'sans-serif',
-        ],
-        serif: ['var(--font-serif)', 'Georgia', 'Cambria', 'Times New Roman', 'serif'],
-      },
-      fontSize: {
-        // Media-grade typography tokens.
-        kicker: ['0.7rem', { lineHeight: '1rem', letterSpacing: '0.08em' }],
-        'headline-xl': ['2.25rem', { lineHeight: '2.5rem', fontWeight: '800' }],
-        'headline-lg': ['1.6rem', { lineHeight: '2rem', fontWeight: '700' }],
-        'headline-md': ['1.15rem', { lineHeight: '1.5rem', fontWeight: '700' }],
-        'headline-sm': ['1rem', { lineHeight: '1.35rem', fontWeight: '600' }],
+        sans: ['var(--font-inter)', 'system-ui', 'Arial', 'sans-serif'],
+        serif: ['var(--font-playfair)', 'Georgia', 'Times New Roman', 'serif'],
       },
       maxWidth: {
         page: '1200px',
       },
-      spacing: {
-        gutter: '1rem',
-        'gutter-lg': '1.5rem',
-      },
-      screens: {
-        xs: '420px',
-      },
       boxShadow: {
-        card: '0 1px 2px rgba(15, 23, 42, 0.06)',
+        lift: '0 12px 28px rgba(17, 17, 17, 0.12)',
+        soft: '0 1px 2px rgba(17, 17, 17, 0.04)',
       },
       keyframes: {
         'fade-in': {

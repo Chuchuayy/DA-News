@@ -3,45 +3,36 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import ArticleCard from './components/ArticleCard';
-import ArticleListItem from './components/ArticleListItem';
-import { getArticles, getCategories } from '../lib/queries';
-import { excerpt, formatDate, FALLBACK_COVER } from '../lib/format';
+import SectionHeader from './components/SectionHeader';
+import NewArticleWidget from './components/NewArticleWidget';
+import { getArticles } from '../lib/queries';
+import { formatDate, FALLBACK_COVER } from '../lib/format';
 
 export default function HomePage() {
   const [articles, setArticles] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [sections, setSections] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [today, setToday] = useState('');
 
   useEffect(() => {
+    setToday(
+      new Date().toLocaleDateString('en-US', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      })
+    );
+
     let active = true;
-
-    const load = async () => {
-      try {
-        const [{ data: list }, { data: cats }] = await Promise.all([
-          getArticles({ limit: 30 }),
-          getCategories(),
-        ]);
-        if (!active) return;
-        setArticles(list || []);
-        setCategories(cats || []);
-
-        // Build a per-category block for each known category.
-        const blocks = await Promise.all(
-          (cats || []).map(async (cat) => {
-            const { data } = await getArticles({ categorySlug: cat.slug, limit: 4 });
-            return { category: cat, articles: data || [] };
-          })
-        );
-        if (active) setSections(blocks.filter((b) => b.articles.length > 0));
-      } catch (error) {
-        console.error('Error loading homepage:', error);
-      } finally {
+    getArticles({ limit: 24 })
+      .then(({ data }) => {
+        if (active) setArticles(data || []);
+      })
+      .catch((error) => console.error('Error loading homepage:', error))
+      .finally(() => {
         if (active) setLoading(false);
-      }
-    };
+      });
 
-    load();
     return () => {
       active = false;
     };
@@ -49,153 +40,71 @@ export default function HomePage() {
 
   if (loading) {
     return (
-      <div className="py-16 text-center">
-        <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-2 border-primary border-b-transparent" />
-        <p className="text-sm text-ink-soft">Memuat berita...</p>
+      <div className="py-20 text-center">
+        <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-brand border-b-transparent" />
+        <p className="text-sm text-ink-soft">Loading…</p>
       </div>
     );
   }
 
   const hero = articles[0];
-  const sideFeatured = articles.slice(1, 4);
-  const mainReports = articles.slice(4, 8);
-  const popular = articles.slice(0, 5);
-  const latest = articles.slice(0, 6);
+  const grid = articles.slice(1, 9);
+  const latest = articles.slice(0, 5);
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-12">
       {/* HERO */}
       {hero ? (
-        <section className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          <Link href={`/article/${hero.slug}`} className="group block lg:col-span-2">
-            <div className="relative aspect-[16/9] w-full overflow-hidden rounded">
-              <img
-                src={hero.cover_image || FALLBACK_COVER}
-                alt={hero.title}
-                className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent" />
-              <div className="absolute inset-x-0 bottom-0 p-5 sm:p-7">
-                {hero.categories ? (
-                  <span className="inline-block rounded-sm bg-primary px-2 py-0.5 text-kicker font-bold uppercase text-white">
-                    {hero.categories.name}
-                  </span>
-                ) : null}
-                <h1 className="mt-3 text-2xl font-extrabold leading-tight text-white sm:text-4xl">
-                  {hero.title}
-                </h1>
-                <p className="mt-2 hidden max-w-2xl text-sm text-gray-200 sm:line-clamp-2">
-                  {excerpt(hero.content, 180)}
-                </p>
-                <p className="mt-2 text-xs text-gray-300">{formatDate(hero.created_at)}</p>
-              </div>
+        <Link href={`/article/${hero.slug}`} className="group block">
+          <div className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl bg-surface md:aspect-[21/9]">
+            <img
+              src={hero.cover_image || FALLBACK_COVER}
+              alt={hero.title}
+              className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent" />
+            <span className="pill pill-brand absolute left-4 top-4">
+              {formatDate(hero.created_at)}
+            </span>
+            <div className="absolute inset-x-0 bottom-0 p-6 sm:p-8">
+              <h1 className="line-clamp-3 max-w-3xl text-[28px] font-bold leading-tight text-white">
+                {hero.title}
+              </h1>
+              <p className="mt-2 text-xs text-white/80">
+                {hero.categories?.name ? `${hero.categories.name} · ` : ''}DA News
+              </p>
             </div>
-          </Link>
-
-          <div className="flex flex-col divide-y divide-rule">
-            {sideFeatured.map((article) => (
-              <div key={article.id} className="py-3 first:pt-0 last:pb-0">
-                <ArticleCard article={article} variant="horizontal" />
-              </div>
-            ))}
           </div>
-        </section>
+        </Link>
       ) : (
-        <section className="rounded border border-rule bg-primary-soft p-10 text-center">
-          <h1 className="text-xl font-bold text-ink">Belum ada artikel</h1>
-          <p className="mt-2 text-sm text-ink-soft">
-            Redaksi belum menerbitkan berita. Silakan kembali lagi nanti.
-          </p>
+        <section className="rounded-2xl border border-rule p-16 text-center">
+          <h1 className="font-serif text-xl font-bold text-ink">No articles yet</h1>
+          <p className="mt-2 text-sm text-ink-soft">The newsroom has not published anything yet.</p>
         </section>
       )}
 
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
-        {/* MAIN COLUMN */}
-        <div className="space-y-10 lg:col-span-8">
-          {/* Laporan utama */}
-          {mainReports.length > 0 ? (
-            <section>
-              <div className="section-bar">
-                <h2 className="section-bar__title">Laporan Utama</h2>
-              </div>
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                {mainReports.map((article) => (
-                  <ArticleCard key={article.id} article={article} />
-                ))}
-              </div>
-            </section>
-          ) : null}
-
-          {/* Category blocks */}
-          {sections.map((block) => (
-            <section key={block.category.id}>
-              <div className="section-bar">
-                <h2 className="section-bar__title">{block.category.name}</h2>
-                <Link href={`/category/${block.category.slug}`} className="section-bar__more">
-                  Lihat semua
-                </Link>
-              </div>
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                <ArticleCard article={block.articles[0]} showSummary={false} />
-                <div className="flex flex-col divide-y divide-rule">
-                  {block.articles.slice(1).map((article) => (
-                    <div key={article.id} className="py-3 first:pt-0 last:pb-0">
-                      <ArticleCard article={article} variant="horizontal" showSummary={false} />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </section>
-          ))}
+      <div className="grid grid-cols-1 gap-10 lg:grid-cols-12">
+        {/* MAIN */}
+        <div className="lg:col-span-8">
+          <SectionHeader
+            title="Latest Stories"
+            subtitle="Original reporting from Asia and beyond."
+            date={today}
+          />
+          {grid.length > 0 ? (
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              {grid.map((article) => (
+                <ArticleCard key={article.id} article={article} />
+              ))}
+            </div>
+          ) : (
+            <p className="py-8 text-sm text-ink-soft">More stories will appear here soon.</p>
+          )}
         </div>
 
         {/* SIDEBAR */}
-        <aside className="space-y-8 lg:col-span-4">
-          <section className="rounded border border-rule p-4">
-            <div className="section-bar">
-              <h2 className="section-bar__title text-base">Terpopuler</h2>
-            </div>
-            <div className="space-y-3">
-              {popular.map((article, index) => (
-                <ArticleListItem key={article.id} article={article} rank={index + 1} />
-              ))}
-            </div>
-          </section>
-
-          <section className="rounded border border-rule p-4">
-            <div className="section-bar">
-              <h2 className="section-bar__title text-base">Terbaru</h2>
-            </div>
-            <div className="space-y-3">
-              {latest.map((article, index) => (
-                <ArticleListItem
-                  key={article.id}
-                  article={article}
-                  rank={index + 1}
-                  showRank={false}
-                />
-              ))}
-            </div>
-          </section>
-
-          {categories.length > 0 ? (
-            <section className="rounded border border-rule p-4">
-              <div className="section-bar">
-                <h2 className="section-bar__title text-base">Kategori</h2>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {categories.map((cat) => (
-                  <Link
-                    key={cat.id}
-                    href={`/category/${cat.slug}`}
-                    className="rounded-full border border-rule px-3 py-1 text-xs font-medium text-ink-soft transition hover:border-primary hover:text-primary"
-                  >
-                    {cat.name}
-                  </Link>
-                ))}
-              </div>
-            </section>
-          ) : null}
+        <aside className="lg:col-span-4">
+          <NewArticleWidget articles={latest} />
         </aside>
       </div>
     </div>
