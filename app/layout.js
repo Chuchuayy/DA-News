@@ -1,1 +1,40 @@
-import Header from './components/Header';\nimport './globals.css';\n\nexport const metadata = {\n  title: 'DA News - Dubirodum Asia News',\n  description: 'Dubirodum Asia News - Breaking news from Asia',\n  openGraph: {\n    title: 'DA News',\n    description: 'Dubirodum Asia News',\n    type: 'website',\n  },\n};\n\nexport default function RootLayout({ children }) {\n  return (\n    <html lang=\"en\">\n      <body className=\"bg-gray-50 text-gray-900\">\n        <Header />\n        <main className=\"max-w-7xl mx-auto px-4 py-8\">\n          {children}\n        </main>\n      </body>\n    </html>\n  );\n}\n
+import Header from './components/Header';
+import Footer from './components/Footer';
+import './globals.css';
+
+const SITE_NAME = 'DA News';
+const TAGLINE = 'Dubirodum Asia News';
+
+export const metadata = {
+  metadataBase: new URL('https://dubirodum.asia'),
+  title: {
+    default: `${SITE_NAME} - ${TAGLINE}`,
+    template: `%s | ${SITE_NAME}`,
+  },
+  description: `${TAGLINE} - Berita terkini dan terpercaya dari Asia: politik, ekonomi, teknologi, dan dunia.`,
+  keywords: ['DA News', TAGLINE, 'berita Asia', 'berita terkini', 'dubirodum'],
+  openGraph: {
+    title: `${SITE_NAME} - ${TAGLINE}`,
+    description: `${TAGLINE} - Berita terkini dan terpercaya dari Asia.`,
+    siteName: SITE_NAME,
+    type: 'website',
+    locale: 'id_ID',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: `${SITE_NAME} - ${TAGLINE}`,
+    description: `${TAGLINE} - Berita terkini dan terpercaya dari Asia.`,
+  },
+};
+
+export default function RootLayout({ children }) {
+  return (
+    <html lang="id">
+      <body className="min-h-screen bg-white font-sans text-ink antialiased">
+        <Header />
+        <main className="container-page py-6 sm:py-8">{children}</main>
+        <Footer />
+      </body>
+    </html>
+  );
+}

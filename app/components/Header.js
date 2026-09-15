@@ -1,116 +1,160 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabaseClient';
-
-const categories = [
-  { id: '54bfeb8a-47c1-4854-ac22-67660cee75f0', name: 'World', slug: 'world' },
-  { id: '70eac60d-7488-47e8-8e6c-0795c6530f65', name: 'Technology', slug: 'technology' },
-];
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { supabase } from '../../lib/supabaseClient';
+import { getCategories } from '../../lib/queries';
+import { isAdmin } from '../../lib/admin';
 
 export default function Header() {
+  const router = useRouter();
   const [user, setUser] = useState(null);
-  const [searchOpen, setSearchOpen] = useState(false);
+  const [categories, setCategories] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [categoryOpen, setCategoryOpen] = useState(false);
+  const [today, setToday] = useState('');
 
   useEffect(() => {
-    const getUser = async () => {
-      const { data } = await supabase.auth.getSession();
-      setUser(data?.session?.user || null);
-    };
-    getUser();
+    // Date is resolved on the client to avoid SSR/client hydration mismatch.
+    setToday(
+      new Date().toLocaleDateString('id-ID', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      })
+    );
 
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+    let active = true;
+    getCategories()
+      .then(({ data }) => {
+        if (active) setCategories(data || []);
+      })
+      .catch(() => {});
+
+    supabase.auth.getSession().then(({ data }) => {
+      if (active) setUser(data?.session?.user || null);
+    });
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user || null);
     });
 
-    return () => authListener?.subscription?.unsubscribe();
+    return () => {
+      active = false;
+      authListener?.subscription?.unsubscribe();
+    };
   }, []);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
     setUser(null);
+    router.push('/');
   };
 
-  return (
-    <header className="bg-gradient-to-r from-blue-600 to-blue-500 text-white sticky top-0 z-50 shadow-md">
-      <div className="max-w-7xl mx-auto px-4 py-4">
-        {/* Top Row - Logo & Auth */}
-        <div className="flex items-center justify-between mb-4">
-          <Link href="/" className="flex flex-col">
-            <h1 className="text-2xl font-bold">DA News</h1>
-            <p className="text-xs text-blue-100">Dubirodum Asia News</p>
-          </Link>
+  const handleSearch = (e) => {
+    e.preventDefault();
+    const q = searchQuery.trim();
+    router.push(q ? `/search?q=${encodeURIComponent(q)}` : '/search');
+  };
 
-          <div className="flex items-center gap-3">
-            {user ? (
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-blue-600 font-bold">
-                    {user.user_metadata?.display_name?.[0] || 'U'}
-                  </div>
-                  <span className="text-sm font-medium hidden sm:inline">{user.user_metadata?.display_name || 'User'}</span>
-                </div>
-                <button
-                  onClick={handleLogout}
-                  className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm font-medium transition"
-                >
+  const adminUser = isAdmin(user);
+
+  return (
+    <header className="sticky top-0 z-50 border-b border-rule bg-white">
+      {/* Utility strip */}
+      <div className="bg-primary-dark text-white">
+        <div className="container-page flex h-8 items-center justify-between text-[11px] sm:text-xs">
+          <span className="truncate">
+            <span className="font-semibold">Dubirodum Asia News</span>
+            {today ? <span className="ml-2 hidden text-blue-100 sm:inline">{today}</span> : null}
+          </span>
+          <nav className="flex items-center gap-3">
+            <Link href="/about" className="hover:text-blue-100">
+              About
+            </Link>
+            {adminUser ? (
+              <>
+                <Link href="/admin" className="font-semibold text-amber-300 hover:text-amber-200">
+                  Admin
+                </Link>
+                <button onClick={handleLogout} className="hover:text-blue-100">
                   Logout
                 </button>
-              </div>
+              </>
+            ) : user ? (
+              <button onClick={handleLogout} className="hover:text-blue-100">
+                Logout
+              </button>
             ) : (
-              <div className="flex gap-2">
-                <Link href="/login" className="bg-white text-blue-600 px-4 py-1.5 rounded font-semibold text-sm hover:bg-gray-100 transition">
-                  Login
-                </Link>
-                <Link href="/signup" className="border border-white text-white px-4 py-1.5 rounded font-semibold text-sm hover:bg-white/10 transition">
-                  Sign Up
-                </Link>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Bottom Row - Categories & Search */}
-        <div className="flex items-center justify-between">
-          {/* Categories */}
-          <div className="flex gap-4">
-            <Link href="/" className="text-sm font-medium hover:text-blue-100 transition">
-              Home
-            </Link>
-            {categories.map((cat) => (
-              <Link
-                key={cat.id}
-                href={`/category/${cat.slug}`}
-                className="text-sm font-medium hover:text-blue-100 transition"
-              >
-                {cat.name}
-              </Link>
-            ))}
-            {user && (
-              <Link href="/admin" className="text-sm font-medium hover:text-blue-100 transition text-yellow-200">
-                Admin
+              <Link href="/login" className="hover:text-blue-100">
+                Login
               </Link>
             )}
-          </div>
-
-          {/* Search Bar */}
-          <div className="relative w-64">
-            <input
-              type="text"
-              placeholder="Search news..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full px-4 py-1.5 rounded-full text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300"
-            />
-            <button className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-900 font-bold">
-              🔍
-            </button>
-          </div>
+          </nav>
         </div>
       </div>
+
+      {/* Masthead */}
+      <div className="container-page flex items-center justify-between gap-4 py-3 sm:py-4">
+        <Link href="/" className="flex flex-col leading-none">
+          <span className="text-2xl font-extrabold tracking-tight text-primary sm:text-3xl">
+            DA News
+          </span>
+          <span className="mt-0.5 text-[11px] font-medium uppercase tracking-[0.18em] text-ink-soft">
+            Dubirodum Asia News
+          </span>
+        </Link>
+
+        <form onSubmit={handleSearch} className="relative hidden w-full max-w-xs sm:block">
+          <input
+            type="search"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Cari berita..."
+            className="input pr-10"
+            aria-label="Cari berita"
+          />
+          <button
+            type="submit"
+            aria-label="Cari"
+            className="absolute right-1 top-1/2 -translate-y-1/2 rounded bg-primary px-2 py-1 text-xs font-semibold text-white hover:bg-primary-dark"
+          >
+            Cari
+          </button>
+        </form>
+      </div>
+
+      {/* Category navigation */}
+      <nav className="border-t border-rule bg-white">
+        <div className="container-page flex items-center gap-4 overflow-x-auto py-2 text-sm">
+          <Link
+            href="/"
+            className="whitespace-nowrap font-semibold text-ink transition hover:text-primary"
+          >
+            Home
+          </Link>
+          {categories.map((cat) => (
+            <Link
+              key={cat.id}
+              href={`/category/${cat.slug}`}
+              className="whitespace-nowrap font-medium text-ink-soft transition hover:text-primary"
+            >
+              {cat.name}
+            </Link>
+          ))}
+          <form onSubmit={handleSearch} className="relative ml-auto sm:hidden">
+            <input
+              type="search"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Cari..."
+              className="input w-32 py-1 text-xs"
+              aria-label="Cari berita"
+            />
+          </form>
+        </div>
+      </nav>
     </header>
   );
 }

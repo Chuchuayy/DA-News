@@ -2,19 +2,26 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu,
+    Cantarell, 'Helvetica Neue', Arial, sans-serif;
+  --font-serif: Georgia, Cambria, 'Times New Roman', serif;
+}
+
 * {
   box-sizing: border-box;
-  padding: 0;
-  margin: 0;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 html,
 body {
   max-width: 100%;
   overflow-x: hidden;
-  background-color: #f8fafc;
-  color: #1a1a1a;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  background-color: #ffffff;
+  color: #0f172a;
 }
 
 a {
@@ -27,22 +34,187 @@ img {
   display: block;
 }
 
-/* Smooth scrolling */
-html {
-  scroll-behavior: smooth;
+/* -------------------------------------------------------------------------- */
+/*  Component primitives (blue & white media look)                             */
+/* -------------------------------------------------------------------------- */
+@layer components {
+  /* Page-width wrapper used across header, footer and pages. */
+  .container-page {
+    @apply mx-auto w-full max-w-page px-4 sm:px-6;
+  }
+
+  /* Section title bar: bold rule + blue accent, Kompas-like. */
+  .section-bar {
+    @apply flex items-center justify-between border-b-2 border-primary pb-2 mb-5;
+  }
+
+  .section-bar__title {
+    @apply relative pl-3 text-lg font-extrabold uppercase tracking-wide text-ink;
+  }
+
+  .section-bar__title::before {
+    content: '';
+    @apply absolute left-0 top-1/2 h-4 w-1 -translate-y-1/2 bg-primary;
+  }
+
+  .section-bar__more {
+    @apply text-xs font-semibold uppercase tracking-wide text-primary hover:text-primary-dark;
+  }
+
+  /* Kicker / category label above headlines. */
+  .kicker {
+    @apply inline-block text-kicker font-bold uppercase text-primary;
+  }
+
+  /* Meta line (date, author) under headlines. */
+  .meta {
+    @apply text-xs text-ink-soft;
+  }
+
+  /* Article card base. */
+  .card {
+    @apply flex flex-col bg-white transition hover:opacity-95;
+  }
+
+  .card__title {
+    @apply font-bold text-ink leading-snug group-hover:text-primary;
+  }
+
+  .card__summary {
+    @apply text-sm text-ink-soft leading-relaxed;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center rounded bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:bg-primary-dark disabled:opacity-60;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center rounded border border-rule px-4 py-2 text-sm font-semibold text-ink transition hover:border-primary hover:text-primary;
+  }
+
+  .input {
+    @apply w-full rounded border border-rule bg-white px-3 py-2 text-sm text-ink outline-none transition focus:border-primary focus:ring-1 focus:ring-primary;
+  }
+
+  .label {
+    @apply mb-1 block text-xs font-semibold uppercase tracking-wide text-ink-soft;
+  }
 }
 
-/* Utility classes */
-.line-clamp-2 {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+/* -------------------------------------------------------------------------- */
+/*  Utilities                                                                  */
+/* -------------------------------------------------------------------------- */
+@layer utilities {
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .line-clamp-4 {
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
 }
 
-.line-clamp-3 {
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+/* -------------------------------------------------------------------------- */
+/*  Rich-text article body (rendered from stored HTML)                          */
+/* -------------------------------------------------------------------------- */
+.article-body {
+  font-size: 1.0625rem;
+  line-height: 1.85;
+  color: #1e293b;
+  word-break: break-word;
+}
+
+.article-body p {
+  margin-bottom: 1.25rem;
+}
+
+.article-body h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 2rem 0 0.75rem;
+  color: #0f172a;
+}
+
+.article-body h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 1.5rem 0 0.5rem;
+  color: #0f172a;
+}
+
+.article-body a {
+  color: #2563eb;
+  text-decoration: underline;
+}
+
+.article-body ul,
+.article-body ol {
+  margin: 0 0 1.25rem 1.25rem;
+  padding-left: 1rem;
+}
+
+.article-body ul {
+  list-style: disc;
+}
+
+.article-body ol {
+  list-style: decimal;
+}
+
+.article-body blockquote {
+  border-left: 3px solid #2563eb;
+  padding-left: 1rem;
+  margin: 1.5rem 0;
+  color: #475569;
+  font-style: italic;
+}
+
+.article-body img {
+  margin: 1.5rem 0;
+  border-radius: 4px;
+}
+
+.article-body pre {
+  background: #0f172a;
+  color: #f8fafc;
+  padding: 1rem;
+  border-radius: 6px;
+  overflow-x: auto;
+  margin-bottom: 1.25rem;
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Quill editor overrides (blue & white)                                      */
+/* -------------------------------------------------------------------------- */
+.ql-toolbar.ql-snow {
+  border-color: #e2e8f0;
+  border-top-left-radius: 4px;
+  border-top-right-radius: 4px;
+  background: #f8fafc;
+}
+
+.ql-container.ql-snow {
+  border-color: #e2e8f0;
+  border-bottom-left-radius: 4px;
+  border-bottom-right-radius: 4px;
+  min-height: 260px;
+  font-size: 1rem;
+  font-family: var(--font-sans);
+}
+
+.ql-editor {
+  min-height: 260px;
 }

@@ -1,5 +1,7 @@
 'use client';
+
 import { useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../../lib/supabaseClient';
 
@@ -7,14 +9,17 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   async function handleLogin(e) {
     e.preventDefault();
     setError('');
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) {
-      setError(error.message);
+    setLoading(true);
+    const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+    setLoading(false);
+    if (signInError) {
+      setError(signInError.message);
     } else {
       router.push('/');
       router.refresh();
@@ -22,36 +27,72 @@ export default function LoginPage() {
   }
 
   return (
-    <main style={{ maxWidth: '400px', margin: '3rem auto', padding: '0 1.5rem' }}>
-      <h1 style={{ fontSize: '1.5rem', marginBottom: '1.5rem' }}>Log In</h1>
-      <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          style={{ padding: '0.75rem', border: '1px solid #ddd', borderRadius: '6px' }}
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          style={{ padding: '0.75rem', border: '1px solid #ddd', borderRadius: '6px' }}
-        />
-        {error && <p style={{ color: '#c81d3b', fontSize: '0.9rem' }}>{error}</p>}
-        <button type="submit" style={{
-          padding: '0.75rem', background: '#000', color: '#fff',
-          border: 'none', borderRadius: '6px', cursor: 'pointer'
-        }}>
-          Log In
-        </button>
-      </form>
-      <p style={{ marginTop: '1rem', fontSize: '0.9rem' }}>
-        Don&apos;t have an account? <a href="/signup">Sign up</a>
+    <div className="mx-auto max-w-md py-10">
+      <div className="mb-6 text-center">
+        <span className="text-2xl font-extrabold tracking-tight text-primary">DA News</span>
+        <p className="mt-1 text-[11px] font-medium uppercase tracking-[0.18em] text-ink-soft">
+          Dubirodum Asia News
+        </p>
+      </div>
+
+      <div className="rounded border border-rule bg-white p-6 shadow-card">
+        <h1 className="mb-1 text-lg font-bold text-ink">Masuk</h1>
+        <p className="mb-6 text-sm text-ink-soft">Masuk untuk mengelola berita DA News.</p>
+
+        <form onSubmit={handleLogin} className="space-y-4">
+          <div>
+            <label className="label" htmlFor="email">
+              Email
+            </label>
+            <input
+              id="email"
+              type="email"
+              placeholder="nama@email.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="input"
+            />
+          </div>
+          <div>
+            <label className="label" htmlFor="password">
+              Password
+            </label>
+            <input
+              id="password"
+              type="password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className="input"
+            />
+          </div>
+
+          {error ? (
+            <p className="rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600">
+              {error}
+            </p>
+          ) : null}
+
+          <button type="submit" disabled={loading} className="btn-primary w-full">
+            {loading ? 'Memproses...' : 'Masuk'}
+          </button>
+        </form>
+
+        <p className="mt-6 text-center text-sm text-ink-soft">
+          Belum punya akun?{' '}
+          <Link href="/app/signup" className="font-semibold text-primary hover:text-primary-dark">
+            Daftar
+          </Link>
+        </p>
+      </div>
+
+      <p className="mt-6 text-center text-xs text-ink-soft">
+        <Link href="/" className="hover:text-primary">
+          &larr; Kembali ke Beranda
+        </Link>
       </p>
-    </main>
+    </div>
   );
 }

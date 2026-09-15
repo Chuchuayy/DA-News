@@ -1,1 +1,203 @@
-'use client';\n\nimport { useEffect, useState } from 'react';\nimport Link from 'next/link';\nimport { supabase } from '@/lib/supabaseClient';\n\nexport default function Home() {\n  const [articles, setArticles] = useState([]);\n  const [loading, setLoading] = useState(true);\n\n  useEffect(() => {\n    fetchArticles();\n  }, []);\n\n  const fetchArticles = async () => {\n    try {\n      const { data, error } = await supabase\n        .from('articles')\n        .select('id, title, slug, content, cover_image, created_at, categories(name)')\n        .order('created_at', { ascending: false });\n\n      if (error) throw error;\n      setArticles(data || []);\n    } catch (error) {\n      console.error('Error fetching articles:', error);\n    } finally {\n      setLoading(false);\n    }\n  };\n\n  const featured = articles[0];\n  const subFeatured = articles[1];\n  const listArticles = articles.slice(2);\n\n  return (\n    <div className=\"space-y-8\">\n      {loading ? (\n        <div className=\"text-center py-12\">\n          <div className=\"animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4\"></div>\n          <p className=\"text-gray-600\">Loading articles...</p>\n        </div>\n      ) : (\n        <>\n          {/* 1. HERO FEATURED ARTICLE */}\n          {featured && (\n            <Link href={`/article/${featured.slug}`} className=\"block group\">\n              <div className=\"relative aspect-video w-full rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition\">\n                <img\n                  src={featured.cover_image || '/placeholder.jpg'}\n                  alt={featured.title}\n                  className=\"w-full h-full object-cover group-hover:scale-105 transition-transform duration-300\"\n                />\n                <div className=\"absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent\" />\n\n                <div className=\"absolute bottom-0 left-0 right-0 p-6 space-y-3 text-white\">\n                  <span className=\"inline-block bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full\">\n                    {featured.categories?.name || 'News'}\n                  </span>\n                  <h1 className=\"text-3xl font-bold leading-tight line-clamp-3\">\n                    {featured.title}\n                  </h1>\n                  <p className=\"text-sm text-gray-200\">\n                    {new Date(featured.created_at).toLocaleDateString('en-US', {\n                      month: 'short',\n                      day: 'numeric',\n                      year: 'numeric',\n                    })}\n                  </p>\n                </div>\n              </div>\n            </Link>\n          )}\n\n          {/* 2. SUB-FEATURED ARTICLE */}\n          {subFeatured && (\n            <Link href={`/article/${subFeatured.slug}`} className=\"block group\">\n              <div className=\"bg-white rounded-lg shadow hover:shadow-lg transition p-6 border-l-4 border-blue-600\">\n                <div className=\"flex items-center gap-2 mb-3\">\n                  <span className=\"inline-block bg-blue-100 text-blue-800 text-xs font-semibold px-2 py-1 rounded\">\n                    {subFeatured.categories?.name || 'News'}\n                  </span>\n                </div>\n                <h2 className=\"text-2xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition\">\n                  {subFeatured.title}\n                </h2>\n                <p className=\"text-gray-600 line-clamp-2 mb-3\">\n                  {subFeatured.content}\n                </p>\n                <p className=\"text-sm text-gray-500\">\n                  {new Date(subFeatured.created_at).toLocaleDateString('en-US', {\n                    month: 'short',\n                    day: 'numeric',\n                    year: 'numeric',\n                  })}\n                </p>\n              </div>\n            </Link>\n          )}\n\n          {/* 3. LIST ARTICLES */}\n          {listArticles.length > 0 && (\n            <div>\n              <h2 className=\"text-2xl font-bold text-gray-900 mb-6\">Latest News</h2>\n              <div className=\"grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6\">\n                {listArticles.map((article) => (\n                  <Link\n                    key={article.id}\n                    href={`/article/${article.slug}`}\n                    className=\"group bg-white rounded-lg shadow hover:shadow-lg transition overflow-hidden\"\n                  >\n                    {/* Thumbnail */}\n                    <div className=\"relative h-48 bg-gray-100 overflow-hidden\">\n                      <img\n                        src={article.cover_image || '/placeholder.jpg'}\n                        alt={article.title}\n                        className=\"w-full h-full object-cover group-hover:scale-110 transition-transform duration-300\"\n                      />\n                      <span className=\"absolute top-3 left-3 bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded\">\n                        {article.categories?.name || 'News'}\n                      </span>\n                    </div>\n\n                    {/* Content */}\n                    <div className=\"p-4\">\n                      <h3 className=\"font-bold text-gray-900 line-clamp-2 group-hover:text-blue-600 transition mb-2\">\n                        {article.title}\n                      </h3>\n                      <p className=\"text-sm text-gray-600 line-clamp-2 mb-3\">\n                        {article.content}\n                      </p>\n                      <p className=\"text-xs text-gray-500\">\n                        {new Date(article.created_at).toLocaleDateString('en-US', {\n                          month: 'short',\n                          day: 'numeric',\n                        })}\n                      </p>\n                    </div>\n                  </Link>\n                ))}\n              </div>\n            </div>\n          )}\n\n          {articles.length === 0 && !loading && (\n            <div className=\"bg-white rounded-lg shadow p-12 text-center\">\n              <p className=\"text-gray-600 mb-4\">No articles yet.</p>\n              <p className=\"text-sm text-gray-500\">Come back soon!</p>\n            </div>\n          )}\n        </>\n      )}\n    </div>\n  );\n}\n
+'use client';
+
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import ArticleCard from './components/ArticleCard';
+import ArticleListItem from './components/ArticleListItem';
+import { getArticles, getCategories } from '../lib/queries';
+import { excerpt, formatDate, FALLBACK_COVER } from '../lib/format';
+
+export default function HomePage() {
+  const [articles, setArticles] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [sections, setSections] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+
+    const load = async () => {
+      try {
+        const [{ data: list }, { data: cats }] = await Promise.all([
+          getArticles({ limit: 30 }),
+          getCategories(),
+        ]);
+        if (!active) return;
+        setArticles(list || []);
+        setCategories(cats || []);
+
+        // Build a per-category block for each known category.
+        const blocks = await Promise.all(
+          (cats || []).map(async (cat) => {
+            const { data } = await getArticles({ categorySlug: cat.slug, limit: 4 });
+            return { category: cat, articles: data || [] };
+          })
+        );
+        if (active) setSections(blocks.filter((b) => b.articles.length > 0));
+      } catch (error) {
+        console.error('Error loading homepage:', error);
+      } finally {
+        if (active) setLoading(false);
+      }
+    };
+
+    load();
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="py-16 text-center">
+        <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-2 border-primary border-b-transparent" />
+        <p className="text-sm text-ink-soft">Memuat berita...</p>
+      </div>
+    );
+  }
+
+  const hero = articles[0];
+  const sideFeatured = articles.slice(1, 4);
+  const mainReports = articles.slice(4, 8);
+  const popular = articles.slice(0, 5);
+  const latest = articles.slice(0, 6);
+
+  return (
+    <div className="space-y-10">
+      {/* HERO */}
+      {hero ? (
+        <section className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          <Link href={`/article/${hero.slug}`} className="group block lg:col-span-2">
+            <div className="relative aspect-[16/9] w-full overflow-hidden rounded">
+              <img
+                src={hero.cover_image || FALLBACK_COVER}
+                alt={hero.title}
+                className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent" />
+              <div className="absolute inset-x-0 bottom-0 p-5 sm:p-7">
+                {hero.categories ? (
+                  <span className="inline-block rounded-sm bg-primary px-2 py-0.5 text-kicker font-bold uppercase text-white">
+                    {hero.categories.name}
+                  </span>
+                ) : null}
+                <h1 className="mt-3 text-2xl font-extrabold leading-tight text-white sm:text-4xl">
+                  {hero.title}
+                </h1>
+                <p className="mt-2 hidden max-w-2xl text-sm text-gray-200 sm:line-clamp-2">
+                  {excerpt(hero.content, 180)}
+                </p>
+                <p className="mt-2 text-xs text-gray-300">{formatDate(hero.created_at)}</p>
+              </div>
+            </div>
+          </Link>
+
+          <div className="flex flex-col divide-y divide-rule">
+            {sideFeatured.map((article) => (
+              <div key={article.id} className="py-3 first:pt-0 last:pb-0">
+                <ArticleCard article={article} variant="horizontal" />
+              </div>
+            ))}
+          </div>
+        </section>
+      ) : (
+        <section className="rounded border border-rule bg-primary-soft p-10 text-center">
+          <h1 className="text-xl font-bold text-ink">Belum ada artikel</h1>
+          <p className="mt-2 text-sm text-ink-soft">
+            Redaksi belum menerbitkan berita. Silakan kembali lagi nanti.
+          </p>
+        </section>
+      )}
+
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
+        {/* MAIN COLUMN */}
+        <div className="space-y-10 lg:col-span-8">
+          {/* Laporan utama */}
+          {mainReports.length > 0 ? (
+            <section>
+              <div className="section-bar">
+                <h2 className="section-bar__title">Laporan Utama</h2>
+              </div>
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                {mainReports.map((article) => (
+                  <ArticleCard key={article.id} article={article} />
+                ))}
+              </div>
+            </section>
+          ) : null}
+
+          {/* Category blocks */}
+          {sections.map((block) => (
+            <section key={block.category.id}>
+              <div className="section-bar">
+                <h2 className="section-bar__title">{block.category.name}</h2>
+                <Link href={`/category/${block.category.slug}`} className="section-bar__more">
+                  Lihat semua
+                </Link>
+              </div>
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                <ArticleCard article={block.articles[0]} showSummary={false} />
+                <div className="flex flex-col divide-y divide-rule">
+                  {block.articles.slice(1).map((article) => (
+                    <div key={article.id} className="py-3 first:pt-0 last:pb-0">
+                      <ArticleCard article={article} variant="horizontal" showSummary={false} />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </section>
+          ))}
+        </div>
+
+        {/* SIDEBAR */}
+        <aside className="space-y-8 lg:col-span-4">
+          <section className="rounded border border-rule p-4">
+            <div className="section-bar">
+              <h2 className="section-bar__title text-base">Terpopuler</h2>
+            </div>
+            <div className="space-y-3">
+              {popular.map((article, index) => (
+                <ArticleListItem key={article.id} article={article} rank={index + 1} />
+              ))}
+            </div>
+          </section>
+
+          <section className="rounded border border-rule p-4">
+            <div className="section-bar">
+              <h2 className="section-bar__title text-base">Terbaru</h2>
+            </div>
+            <div className="space-y-3">
+              {latest.map((article, index) => (
+                <ArticleListItem
+                  key={article.id}
+                  article={article}
+                  rank={index + 1}
+                  showRank={false}
+                />
+              ))}
+            </div>
+          </section>
+
+          {categories.length > 0 ? (
+            <section className="rounded border border-rule p-4">
+              <div className="section-bar">
+                <h2 className="section-bar__title text-base">Kategori</h2>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {categories.map((cat) => (
+                  <Link
+                    key={cat.id}
+                    href={`/category/${cat.slug}`}
+                    className="rounded-full border border-rule px-3 py-1 text-xs font-medium text-ink-soft transition hover:border-primary hover:text-primary"
+                  >
+                    {cat.name}
+                  </Link>
+                ))}
+              </div>
+            </section>
+          ) : null}
+        </aside>
+      </div>
+    </div>
+  );
+}
