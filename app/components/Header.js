@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../../lib/supabaseClient';
 import { getCategories, searchArticles } from '../../lib/queries';
+import { articleUrl } from '../../lib/format';
 import { isAdmin } from '../../lib/admin';
 
 function SearchIcon() {
@@ -153,7 +154,7 @@ export default function Header() {
               e.preventDefault();
               const first = results[0];
               if (first) {
-                router.push(`/article/${first.slug}`);
+                router.push(articleUrl(first));
                 closeAll();
               }
             }}
@@ -174,7 +175,7 @@ export default function Header() {
               {results.map((item) => (
                 <li key={item.id}>
                   <Link
-                    href={`/article/${item.slug}`}
+                    href={articleUrl(item)}
                     onClick={closeAll}
                     className="block py-3 text-sm font-medium text-ink transition hover:text-brand"
                   >

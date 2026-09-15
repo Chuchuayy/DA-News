@@ -1,5 +1,6 @@
 import Link from 'next/link';
-import { formatDate, FALLBACK_COVER } from '../../lib/format';
+import CoverImage from './CoverImage';
+import { formatDate, articleUrl } from '../../lib/format';
 
 /** Minimal article card: image, teal category badge, 2-line title, date. */
 export default function ArticleCard({ article }) {
@@ -9,13 +10,15 @@ export default function ArticleCard({ article }) {
 
   return (
     <article className="group">
-      <Link href={`/article/${article.slug}`} className="block">
+      <Link href={articleUrl(article)} className="block">
         <div className="relative overflow-hidden rounded-2xl bg-surface transition duration-300 group-hover:-translate-y-1 group-hover:shadow-lift">
           <div className="aspect-[16/10] w-full overflow-hidden">
-            <img
-              src={article.cover_image || FALLBACK_COVER}
+            <CoverImage
+              src={article.cover_image}
               alt={article.title}
-              loading="lazy"
+              width={800}
+              height={500}
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400px"
               className="h-full w-full object-cover"
             />
           </div>

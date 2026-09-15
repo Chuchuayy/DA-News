@@ -1,6 +1,7 @@
 export const metadata = {
   title: 'Contact',
   description: 'Contact the DA News (Dubirodum Asia News) newsroom.',
+  alternates: { canonical: '/contact' },
 };
 
 export default function ContactPage() {

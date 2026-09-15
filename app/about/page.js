@@ -2,6 +2,7 @@ export const metadata = {
   title: 'About Us',
   description:
     'DA News (Dubirodum Asia News) is an independent newsroom covering Asia and the world.',
+  alternates: { canonical: '/about' },
 };
 
 export default function AboutPage() {

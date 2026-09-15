@@ -1,51 +1,74 @@
-'use client';
-
-import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import ArticleCard from './components/ArticleCard';
 import SectionHeader from './components/SectionHeader';
 import NewArticleWidget from './components/NewArticleWidget';
+import CoverImage from './components/CoverImage';
 import { getArticles } from '../lib/queries';
-import { formatDate, FALLBACK_COVER } from '../lib/format';
+import { formatDate, articleUrl } from '../lib/format';
+import {
+  SITE_URL,
+  SITE_NAME,
+  SITE_TITLE,
+  SITE_DESCRIPTION,
+  DEFAULT_OG_IMAGE,
+  shareImage,
+} from '../lib/seo';
 
-export default function HomePage() {
-  const [articles, setArticles] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [today, setToday] = useState('');
+// Server-rendered above-the-fold HTML with ISR for a fast LCP.
+export const revalidate = 60;
 
-  useEffect(() => {
-    setToday(
-      new Date().toLocaleDateString('en-US', {
-        weekday: 'long',
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric',
-      })
-    );
-
-    let active = true;
-    getArticles({ limit: 24 })
-      .then(({ data }) => {
-        if (active) setArticles(data || []);
-      })
-      .catch((error) => console.error('Error loading homepage:', error))
-      .finally(() => {
-        if (active) setLoading(false);
-      });
-
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  if (loading) {
-    return (
-      <div className="py-20 text-center">
-        <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-brand border-b-transparent" />
-        <p className="text-sm text-ink-soft">Loading…</p>
-      </div>
-    );
+export async function generateMetadata() {
+  let latest = null;
+  try {
+    const { data } = await getArticles({ limit: 1 });
+    latest = data?.[0] || null;
+  } catch {
+    latest = null;
   }
+
+  const title = latest ? latest.title : SITE_TITLE;
+  const description = latest
+    ? `${latest.title} — plus more Asia and world coverage from ${SITE_NAME}.`
+    : SITE_DESCRIPTION;
+  const image = latest ? shareImage(latest) : DEFAULT_OG_IMAGE;
+
+  return {
+    title: { absolute: latest ? `${title} | ${SITE_NAME}` : SITE_TITLE },
+    description,
+    alternates: { canonical: '/' },
+    openGraph: {
+      type: 'website',
+      url: SITE_URL,
+      siteName: SITE_NAME,
+      locale: 'en_US',
+      title,
+      description,
+      images: [{ url: image, width: 1200, height: 630, alt: title }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: [image],
+    },
+  };
+}
+
+export default async function HomePage() {
+  let articles = [];
+  try {
+    const { data } = await getArticles({ limit: 24 });
+    articles = data || [];
+  } catch {
+    articles = [];
+  }
+
+  const today = new Date().toLocaleDateString('en-US', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
 
   const hero = articles[0];
   const grid = articles.slice(1, 9);
@@ -53,13 +76,20 @@ export default function HomePage() {
 
   return (
     <div className="space-y-12">
+      {/* Single page-level H1; the hero headline below stays an H2. */}
+      <h1 className="sr-only">{`${SITE_NAME} — latest news from Asia and the world`}</h1>
+
       {/* HERO */}
       {hero ? (
-        <Link href={`/article/${hero.slug}`} className="group block">
+        <Link href={articleUrl(hero)} className="group block">
           <div className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl bg-surface md:aspect-[21/9]">
-            <img
-              src={hero.cover_image || FALLBACK_COVER}
+            <CoverImage
+              src={hero.cover_image}
               alt={hero.title}
+              width={1600}
+              height={900}
+              priority
+              sizes="(max-width: 768px) 100vw, 1200px"
               className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent" />
@@ -67,9 +97,9 @@ export default function HomePage() {
               {formatDate(hero.created_at)}
             </span>
             <div className="absolute inset-x-0 bottom-0 p-6 sm:p-8">
-              <h1 className="line-clamp-3 max-w-3xl text-[28px] font-bold leading-tight text-white">
+              <h2 className="line-clamp-3 max-w-3xl text-[28px] font-bold leading-tight text-white">
                 {hero.title}
-              </h1>
+              </h2>
               <p className="mt-2 text-xs text-white/80">
                 {hero.categories?.name ? `${hero.categories.name} · ` : ''}DA News
               </p>
@@ -78,7 +108,7 @@ export default function HomePage() {
         </Link>
       ) : (
         <section className="rounded-2xl border border-rule p-16 text-center">
-          <h1 className="font-serif text-xl font-bold text-ink">No articles yet</h1>
+          <h2 className="font-serif text-xl font-bold text-ink">No articles yet</h2>
           <p className="mt-2 text-sm text-ink-soft">The newsroom has not published anything yet.</p>
         </section>
       )}

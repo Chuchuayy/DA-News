@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '../../lib/supabaseClient';
 import { ADMIN_EMAIL, isAdmin, listArticles } from '../../lib/admin';
-import { formatDate } from '../../lib/format';
+import { formatDate, articleUrl } from '../../lib/format';
 import ArticleForm from './components/ArticleForm';
 
 export default function AdminPage() {
@@ -242,7 +242,7 @@ export default function AdminPage() {
                 <tr key={article.id} className="border-t border-rule">
                   <td className="px-4 py-3">
                     <Link
-                      href={`/article/${article.slug}`}
+                      href={articleUrl(article)}
                       className="font-semibold text-ink hover:text-brand"
                     >
                       {article.title}
