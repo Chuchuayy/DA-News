@@ -7,6 +7,7 @@ import { supabase } from '../../lib/supabaseClient';
 import { getCategories, searchArticles } from '../../lib/queries';
 import { articleUrl } from '../../lib/format';
 import { isAdmin } from '../../lib/admin';
+import { SITE_NAME } from '../../lib/seo';
 
 function SearchIcon() {
   return (
@@ -113,7 +114,7 @@ export default function Header() {
     <header className="sticky top-0 z-50 border-b border-rule bg-white">
       <div className="container-page flex h-[60px] items-center justify-between">
         <Link href="/" onClick={closeAll} className="text-2xl font-bold tracking-tight text-brand">
-          DA
+          {SITE_NAME}
         </Link>
 
         <div className="flex items-center gap-2">
@@ -207,7 +208,7 @@ export default function Header() {
           }`}
         >
           <div className="flex h-[60px] items-center justify-between border-b border-rule px-5">
-            <span className="text-lg font-bold text-brand">DA</span>
+            <span className="text-lg font-bold text-brand">{SITE_NAME}</span>
             <button
               type="button"
               aria-label="Close menu"
@@ -290,10 +291,7 @@ export default function Header() {
               </div>
             ) : (
               <div className="space-y-3">
-                <Link href="/login" onClick={closeAll} className="btn-brand w-full">
-                  Sign in
-                </Link>
-                <button type="button" onClick={handleGoogle} className="btn-ghost w-full">
+                <button type="button" onClick={handleGoogle} className="btn-brand w-full">
                   Continue with Google
                 </button>
               </div>

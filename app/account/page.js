@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../../lib/supabaseClient';
 
@@ -51,6 +50,13 @@ export default function AccountPage() {
     router.refresh();
   };
 
+  const handleGoogle = async () => {
+    await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: window.location.origin },
+    });
+  };
+
   if (loading) {
     return (
       <div className="py-20 text-center">
@@ -64,10 +70,10 @@ export default function AccountPage() {
     return (
       <div className="mx-auto max-w-md py-16 text-center">
         <h1 className="font-serif text-2xl font-bold text-ink">Account</h1>
-        <p className="mt-2 text-sm text-ink-soft">Sign in to view your profile.</p>
-        <Link href="/login" className="btn-brand mt-6">
-          Sign in
-        </Link>
+        <p className="mt-2 text-sm text-ink-soft">Sign in with Google to view your profile.</p>
+        <button type="button" onClick={handleGoogle} className="btn-brand mt-6">
+          Continue with Google
+        </button>
       </div>
     );
   }

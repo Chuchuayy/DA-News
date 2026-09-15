@@ -10,6 +10,13 @@ const nextConfig = {
         hostname: 'femroomripuxyscdenwj.supabase.co',
         pathname: '/storage/v1/object/public/**',
       },
+      {
+        // Seed/legacy covers come from Unsplash; allowed here so they can be
+        // optimized. <CoverImage> still renders unknown hosts unoptimized.
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+        pathname: '/**',
+      },
     ],
   },
 };

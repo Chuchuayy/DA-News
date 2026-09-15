@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import Comments from '../../components/Comments';
 import CoverImage from '../../components/CoverImage';
-import { getArticleByCategoryAndSlug } from '../../../lib/queries';
+import { getArticleByCategoryAndSlug, incrementArticleViews } from '../../../lib/queries';
 import { formatDate, articleUrl, excerpt } from '../../../lib/format';
 import {
   SITE_NAME,
@@ -74,6 +74,10 @@ export default async function ArticlePage({ params }) {
   }
 
   if (!article) notFound();
+
+  // Fire-and-forget view counter. Never awaited and never allowed to break
+  // rendering — incrementArticleViews swallows its own errors.
+  incrementArticleViews(article.id).catch(() => {});
 
   const cat = article.categories;
   const author = article.profiles;

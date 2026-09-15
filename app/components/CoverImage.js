@@ -4,7 +4,7 @@ import { FALLBACK_COVER } from '../../lib/format';
 // Only the Supabase Storage host is allow-listed for on-the-fly optimization
 // (see next.config.js). Any other remote host is rendered as-is via
 // `unoptimized` so external covers still work without widening the allow-list.
-const OPTIMIZABLE_HOSTS = new Set(['femroomripuxyscdenwj.supabase.co']);
+const OPTIMIZABLE_HOSTS = new Set(['femroomripuxyscdenwj.supabase.co', 'images.unsplash.com']);
 
 function isOptimizable(src) {
   if (!src) return false;

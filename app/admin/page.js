@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '../../lib/supabaseClient';
-import { ADMIN_EMAIL, isAdmin, listArticles } from '../../lib/admin';
+import { ADMIN_EMAIL, isAdmin, listArticles, signInWithGoogle } from '../../lib/admin';
 import { formatDate, articleUrl } from '../../lib/format';
 import ArticleForm from './components/ArticleForm';
 
@@ -11,9 +11,7 @@ export default function AdminPage() {
   const [checking, setChecking] = useState(true);
   const [user, setUser] = useState(null);
 
-  // Login form state
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  // Login state
   const [authError, setAuthError] = useState('');
   const [authLoading, setAuthLoading] = useState(false);
 
@@ -73,25 +71,16 @@ export default function AdminPage() {
     if (user && isAdmin(user)) loadDashboard();
   }, [user, loadDashboard]);
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
+  const handleLogin = async () => {
     setAuthError('');
     setAuthLoading(true);
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    const { error } = await signInWithGoogle(window.location.origin);
     if (error) {
       setAuthLoading(false);
       setAuthError(error.message);
-      return;
     }
-    if (!isAdmin(data?.user)) {
-      await supabase.auth.signOut();
-      setAuthLoading(false);
-      setAuthError('This account does not have access to the admin dashboard.');
-      return;
-    }
-    setAuthLoading(false);
-    setUser(data.user);
-    setPassword('');
+    // On success the browser is redirected to Google; the whitelist is
+    // enforced when the session returns via onAuthStateChange / bootstrap.
   };
 
   const handleLogout = async () => {
@@ -124,45 +113,19 @@ export default function AdminPage() {
         <div className="rounded-2xl border border-rule p-6">
           <h1 className="mb-1 font-serif text-xl font-bold text-ink">Admin Dashboard</h1>
           <p className="mb-6 text-sm text-ink-soft">
-            Sign in with the newsroom account to manage articles.
+            Sign in with the newsroom Google account to manage articles.
           </p>
 
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div>
-              <label className="label" htmlFor="admin-email">
-                Email
-              </label>
-              <input
-                id="admin-email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="name@email.com"
-                required
-                className="input"
-              />
-            </div>
-            <div>
-              <label className="label" htmlFor="admin-password">
-                Password
-              </label>
-              <input
-                id="admin-password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                required
-                className="input"
-              />
-            </div>
+          <button
+            type="button"
+            onClick={handleLogin}
+            disabled={authLoading}
+            className="btn-brand w-full"
+          >
+            {authLoading ? 'Redirecting…' : 'Continue with Google'}
+          </button>
 
-            {authError ? <p className="text-sm text-date">{authError}</p> : null}
-
-            <button type="submit" disabled={authLoading} className="btn-brand w-full">
-              {authLoading ? 'Signing in…' : 'Sign in'}
-            </button>
-          </form>
+          {authError ? <p className="mt-4 text-sm text-date">{authError}</p> : null}
 
           <p className="mt-6 text-center text-xs text-ink-soft">
             Restricted to <span className="font-semibold text-ink">{ADMIN_EMAIL}</span>.

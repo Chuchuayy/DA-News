@@ -1,9 +1,9 @@
 import Link from 'next/link';
 import ArticleCard from './components/ArticleCard';
 import SectionHeader from './components/SectionHeader';
-import NewArticleWidget from './components/NewArticleWidget';
+import TrendingSection from './components/TrendingSection';
 import CoverImage from './components/CoverImage';
-import { getArticles } from '../lib/queries';
+import { getArticles, getTrendingArticles } from '../lib/queries';
 import { formatDate, articleUrl } from '../lib/format';
 import {
   SITE_URL,
@@ -56,11 +56,18 @@ export async function generateMetadata() {
 
 export default async function HomePage() {
   let articles = [];
+  let trending = [];
   try {
     const { data } = await getArticles({ limit: 24 });
     articles = data || [];
   } catch {
     articles = [];
+  }
+  try {
+    const { data } = await getTrendingArticles(6);
+    trending = data || [];
+  } catch {
+    trending = [];
   }
 
   const today = new Date().toLocaleDateString('en-US', {
@@ -71,8 +78,8 @@ export default async function HomePage() {
   });
 
   const hero = articles[0];
-  const grid = articles.slice(1, 9);
-  const latest = articles.slice(0, 5);
+  // Single list: everything after the hero, newest first, rendered as rows.
+  const list = articles.slice(1);
 
   return (
     <div className="space-y-12">
@@ -113,30 +120,26 @@ export default async function HomePage() {
         </section>
       )}
 
-      <div className="grid grid-cols-1 gap-10 lg:grid-cols-12">
-        {/* MAIN */}
-        <div className="lg:col-span-8">
-          <SectionHeader
-            title="Latest Stories"
-            subtitle="Original reporting from Asia and beyond."
-            date={today}
-          />
-          {grid.length > 0 ? (
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              {grid.map((article) => (
-                <ArticleCard key={article.id} article={article} />
-              ))}
-            </div>
-          ) : (
-            <p className="py-8 text-sm text-ink-soft">More stories will appear here soon.</p>
-          )}
-        </div>
+      {/* TRENDING (full width, directly under the hero) */}
+      <TrendingSection articles={trending} />
 
-        {/* SIDEBAR */}
-        <aside className="lg:col-span-4">
-          <NewArticleWidget articles={latest} />
-        </aside>
-      </div>
+      {/* SINGLE LATEST STORIES LIST — landscape rows, newest first */}
+      <section>
+        <SectionHeader
+          title="Latest Stories"
+          subtitle="Original reporting from Asia and beyond."
+          date={today}
+        />
+        {list.length > 0 ? (
+          <div className="flex flex-col gap-4">
+            {list.map((article) => (
+              <ArticleCard key={article.id} article={article} />
+            ))}
+          </div>
+        ) : (
+          <p className="py-8 text-sm text-ink-soft">More stories will appear here soon.</p>
+        )}
+      </section>
     </div>
   );
 }
